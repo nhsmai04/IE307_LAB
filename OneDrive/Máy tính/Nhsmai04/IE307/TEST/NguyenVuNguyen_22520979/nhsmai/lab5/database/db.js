@@ -22,7 +22,7 @@ export const createTable = async () => {
 
   export const insertPlace = async (title, image, latitude, longitude, location, callback) => {
     try {
-      console.log('Inserting place with title:', title, 'image:', image, 'latitude:', latitude, 'longitude:', longitude, 'location:', location);
+      //console.log('Inserting place with title:', title, 'image:', image, 'latitude:', latitude, 'longitude:', longitude, 'location:', location);
       
       await db.runAsync(
         `INSERT INTO places (title, image, latitude, longitude, location) VALUES (?, ?, ?, ?, ?)`,
@@ -49,6 +49,15 @@ export const fetchPlaces = async (callback) => {
     
 }
 
+export const fetchPlaceById = async (id, callback) => {
+  try {
+    const place = await db.getAsync(`SELECT * FROM places WHERE id = ?`, [id]);
+    console.log("Dia diem theo id",place);
+    callback(place);
+  } catch (error) {
+    console.log("Loi khi lay du lieu dia diem",error);
+  }
+}
 export const updateTable = async () => {
     try {
       // Thêm cột 'location' vào bảng 'places'
@@ -69,5 +78,7 @@ export const updateTable = async () => {
       console.log("Error when dropping the table:", error);
     }
   };
+
+  
 
   

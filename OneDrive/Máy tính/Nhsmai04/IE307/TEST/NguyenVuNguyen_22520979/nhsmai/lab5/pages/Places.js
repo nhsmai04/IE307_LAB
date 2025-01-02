@@ -1,8 +1,8 @@
-import { View, Text ,StyleSheet,ScrollView,FlatList, Image} from 'react-native'
+import { View, Text ,StyleSheet,ScrollView,FlatList, Image,TouchableOpacity} from 'react-native'
 import React,{useEffect,useState} from 'react'
 import { useFocusEffect } from "@react-navigation/native";
 import { fetchPlaces } from '../database/db';
-export default function Places() {
+export default function Places({navigation}) {
   const [places, setPlaces] = useState([])
   useFocusEffect(
     React.useCallback(() => {
@@ -11,6 +11,13 @@ export default function Places() {
   );
 
     const renderItem = ({ item }) => (
+   <TouchableOpacity
+    onPress={() => {
+      navigation.navigate('PlaceDetail', {
+        item: item,
+      });
+    }}
+   >
     <View style={styles.itemContainer}>
       <Image source={{ uri: item.image }} style={styles.productImage} />
       <View style={styles.detailsContainer}>
@@ -18,6 +25,8 @@ export default function Places() {
         <Text>{item.location}</Text>
       </View>
     </View>
+   </TouchableOpacity>
+   
     );
 
   return (

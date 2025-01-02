@@ -2,12 +2,13 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput,Image } from 'react
 import React, {useState,useEffect} from 'react'
 import * as ImagePicker from 'expo-image-picker';
 import { Camera } from 'expo-camera';
-import MapView, {UrlTile,Marker} from 'react-native-maps';
+import MapView, {UrlTile,Marker, Callout} from 'react-native-maps';
 import * as Location from 'expo-location';
 import axios from 'axios';
 import Icon from "react-native-vector-icons/FontAwesome5";
 import { insertPlace,createTable ,updateTable,checkTableColumns,dropTable } from '../database/db';
-
+import * as Notifications from 'expo-notifications';
+import { getAddressFromCoordinates } from '../api/fetchapi';
 const MY_API_KEY = 'UHbxMRzfVuk5EZ8L3NuUURw_ibZ4LHQLQd67kNeV9Sg'; 
 
 export default function AddPlace({navigation}) {
@@ -81,28 +82,30 @@ export default function AddPlace({navigation}) {
           setSelectedLocation({ latitude: lat, longitude: lng });
   
           // Gọi hàm lấy địa chỉ với tọa độ trực tiếp
-          getAddressFromCoordinates(lat, lng);
+        const temp = await getAddressFromCoordinates(lat, lng);
+        setLocation(temp);
       } catch (error) {
           console.error('Error fetching user location:', error);
           alert('Failed to get user location');
       }
   };
-  
+  const pickOnMap = () => {
+    navigation.navigate('PickonMap', { setLatitude, setLongitude, setSelectedLocation,location,setLocation });
+  };
 
-    const getAddressFromCoordinates = async (latitude, longitude) => {
-        const apiKey = MY_API_KEY; // Replace with your HERE API Key
-        const url = `https://revgeocode.search.hereapi.com/v1/revgeocode?at=${latitude},${longitude}&apikey=${apiKey}`;
+    // const getAddressFromCoordinates = async (latitude, longitude) => {
+    //     const apiKey = MY_API_KEY; // Replace with your HERE API Key
+    //     const url = `https://revgeocode.search.hereapi.com/v1/revgeocode?at=${latitude},${longitude}&apikey=${apiKey}`;
       
-        try {
-          const response = await axios.get(url);
-          const address = response.data.items[0].address;
+    //     try {
+    //       const response = await axios.get(url);
+    //       const address = response.data.items[0].address;
           
-          alert(`Address: ${address.label}`);
-            setLocation(address.label);
-        } catch (error) {
-          console.error('Error fetching address:', error);
-        }
-      };
+    //         return address.label;
+    //     } catch (error) {
+    //       console.error('Error fetching address:', error);
+    //     }
+    //   };
 
 
 
@@ -116,8 +119,24 @@ export default function AddPlace({navigation}) {
   }
 
   try {
-    insertPlace(title, image, latitude, longitude, location, () => {
-    navigation.goBack();
+    insertPlace(title, image, latitude, longitude, location,  () => {
+      setTitle('');
+      setImage(null);
+      setLatitude(null);
+      setLongitude(null);
+      setLocation(null);
+
+       Notifications.scheduleNotificationAsync({
+        content: {
+          title: "Places added Successfully",
+          body: "Your place has been saved successfully!",
+        },
+        trigger: null,
+      });
+
+      console.log('Going back...');
+      navigation.goBack();
+      
     });
   } catch (error) {
     console.error('Error when inserting place:', error);
@@ -125,11 +144,7 @@ export default function AddPlace({navigation}) {
   }
 
   // Reset các giá trị
-  setTitle('');
-  setImage(null);
-  setLatitude(null);
-  setLongitude(null);
-  setLocation(null);  // Cũng nên reset location
+    // Cũng nên reset location
     }
 
   return (
@@ -171,7 +186,11 @@ export default function AddPlace({navigation}) {
           {selectedLocation && (
           <Marker coordinate={selectedLocation} />
         )}
-            
+            <Callout>
+              <View style={styles.callout}>
+                  <Text style={styles.calloutText}>{location}</Text>
+              </View>
+            </Callout>
             </MapView>}
         </View>
 
@@ -232,6 +251,21 @@ const styles = StyleSheet.create({
         image: {
         width: '100%',
         height: '100%',
+    },
+    callout: {
+      width: 200,
+      padding: 5,
+      backgroundColor: 'white',
+      borderRadius: 5,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 5,
+    },
+    calloutText: {
+      fontSize: 14,
+      color: '#333',
     },
     buttonContainer: {
         display: 'flex',

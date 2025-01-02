@@ -1,17 +1,19 @@
 import React, { useState, useLayoutEffect } from 'react';
-import { View, StyleSheet, Alert, Button } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-
+import { View, StyleSheet, Alert, Button ,Text} from 'react-native';
+import MapView, { Marker,Callout } from 'react-native-maps';
+import { getAddressFromCoordinates } from '../api/fetchapi';
 export default function PickonMap({ route, navigation }) {
-    const { setLatitude, setLongitude,setSelectedLocation, getAddressFromCoordinates } = route.params;
-  const [selectedLocationtemp, setSelectedLocationtemp] = useState(null);
-
-  const handleSelectLocation = (event) => {
+    const { setLatitude, setLongitude,setSelectedLocation, location,setLocation} = route.params;
+    const [selectedLocationtemp, setSelectedLocationtemp] = useState(null);
+    const [address, setAddress] = useState('');
+  const handleSelectLocation = async (event) => {
     const { latitude, longitude } = event.nativeEvent.coordinate;
     setSelectedLocationtemp({ latitude, longitude });
+    const temp =  getAddressFromCoordinates(latitude, longitude);
+    setAddress(temp);
   };
 
-  const handleSaveLocation = () => {
+  const handleSaveLocation = async () => {
     if (!selectedLocationtemp) {
       Alert.alert('No location selected', 'Please select a location on the map.');
       return;
@@ -19,8 +21,9 @@ export default function PickonMap({ route, navigation }) {
     setLatitude(selectedLocationtemp.latitude);
     setLongitude(selectedLocationtemp.longitude);
     setSelectedLocation(selectedLocationtemp);
-    getAddressFromCoordinates(selectedLocationtemp.latitude, selectedLocationtemp.longitude);
-    navigation.goBack();
+   const temp = await getAddressFromCoordinates(selectedLocationtemp.latitude, selectedLocationtemp.longitude);
+   setLocation(temp);
+   navigation.goBack();
   };
 
   useLayoutEffect(() => {
@@ -48,7 +51,13 @@ export default function PickonMap({ route, navigation }) {
         onPress={handleSelectLocation}
       >
         {selectedLocationtemp && (
-          <Marker coordinate={selectedLocationtemp} />
+          <Marker coordinate={selectedLocationtemp} >
+            <Callout>
+              <View style={styles.callout}>
+                <Text style={styles.calloutText}>{address}</Text>
+              </View>
+            </Callout>
+          </Marker>
         )}
       </MapView>
     </View>
@@ -61,5 +70,20 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
+  },
+  callout: {
+    width: 200,
+    padding: 5,
+    backgroundColor: 'white',
+    borderRadius: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  calloutText: {
+    fontSize: 14,
+    color: '#333',
   },
 });
