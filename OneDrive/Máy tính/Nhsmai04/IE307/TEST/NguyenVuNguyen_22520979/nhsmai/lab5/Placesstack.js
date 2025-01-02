@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack'
 import Places from './pages/Places'
 import AddPlace from './pages/AddPlace'
 import { useNavigation } from '@react-navigation/native';
+import PickonMap from './pages/PickonMap'
 
 const PlacesStack = createStackNavigator() 
 export default function Placesstack() {
@@ -25,7 +26,12 @@ export default function Placesstack() {
       }
        
         />
-        <PlacesStack.Screen name="AddPlace" component={AddPlace}  />
+        <PlacesStack.Screen name="AddPlace" component={AddPlace} 
+         options={{
+          title: 'Add a new Place',
+         }}
+        />
+        <PlacesStack.Screen name="PickonMap" component={PickonMap}  />
     </PlacesStack.Navigator>
   )
 }

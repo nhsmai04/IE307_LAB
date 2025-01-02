@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput,Image } from 'react
 import React, {useState,useEffect} from 'react'
 import * as ImagePicker from 'expo-image-picker';
 import { Camera } from 'expo-camera';
-import MapView, {UrlTile} from 'react-native-maps';
+import MapView, {UrlTile,Marker} from 'react-native-maps';
 import * as Location from 'expo-location';
 import axios from 'axios';
 import Icon from "react-native-vector-icons/FontAwesome5";
@@ -16,7 +16,8 @@ export default function AddPlace({navigation}) {
   const [title, setTitle] = useState('');
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
-  const [location, setLocation] = useState(null);  
+  const [location, setLocation] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState(null);  
   useEffect(() => {
     (async () => {
         createTable();
@@ -62,24 +63,31 @@ export default function AddPlace({navigation}) {
     }
 
     const pickLocation = async () => {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      alert('Permission to access location was denied');
-      return;
-    }
-    const userLocation = await Location.getCurrentPositionAsync({});
-    setLatitude(userLocation.coords.latitude);
-    setLongitude(userLocation.coords.longitude);
-    getAddressFromCoordinates(latitude, longitude);
-    }
-    
-    const pickOnMap = async (event) => {
-        const { latitude, longitude } = event.nativeEvent.coordinate;
-        setLatitude(latitude);
-        setLongitude(longitude);
-        getAddressFromCoordinates(latitude, longitude);
-        
-    }
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+          alert('Permission to access location was denied');
+          return;
+      }
+      try {
+          const userLocation = await Location.getCurrentPositionAsync({});
+          console.log('User location:', userLocation);
+          
+          const lat = userLocation.coords.latitude;
+          const lng = userLocation.coords.longitude;
+  
+          // Cập nhật state
+          setLatitude(lat);
+          setLongitude(lng);
+          setSelectedLocation({ latitude: lat, longitude: lng });
+  
+          // Gọi hàm lấy địa chỉ với tọa độ trực tiếp
+          getAddressFromCoordinates(lat, lng);
+      } catch (error) {
+          console.error('Error fetching user location:', error);
+          alert('Failed to get user location');
+      }
+  };
+  
 
     const getAddressFromCoordinates = async (latitude, longitude) => {
         const apiKey = MY_API_KEY; // Replace with your HERE API Key
@@ -109,7 +117,7 @@ export default function AddPlace({navigation}) {
 
   try {
     insertPlace(title, image, latitude, longitude, location, () => {
-      navigation.goBack();
+    navigation.goBack();
     });
   } catch (error) {
     console.error('Error when inserting place:', error);
@@ -149,21 +157,20 @@ export default function AddPlace({navigation}) {
         <MapView 
         style={styles.map} 
         region={{
-            latitude: location.latitude || 10.729904464832261, 
-            longitude: location.longitude ||106.6179990237564,
-            latitudeDelta: 0.0922,
-            longitudeDelta: 0.0421,
-        }}
-        onPress={(event) => pickOnMap( event)
-        }
-
+            latitude: latitude || 10.729904464832261, 
+            longitude: longitude ||106.6179990237564,
+            latitudeDelta: 0.005, // Giảm giá trị này để phóng to hơn
+                longitudeDelta: 0.005, // Giảm giá trị này để phóng to hơn
+        }}      
         >
             <UrlTile
             urlTemplate={`https://dev.virtualearth.net/REST/v1/Imagery/Metadata/Road?zl={z}&x={x}&y={y}&key=${MY_API_KEY}`}
-            maximumZ={19}
+            maximumZ={25}
             tileSize={256}
             />
-
+          {selectedLocation && (
+          <Marker coordinate={selectedLocation} />
+        )}
             
             </MapView>}
         </View>
@@ -173,7 +180,7 @@ export default function AddPlace({navigation}) {
                 <Icon name="map-marker-alt" size={24} color="white" />
                 <Text>Locate User</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button} onPress={pickOnMap}>
+            <TouchableOpacity style={styles.button} onPress={()=>pickOnMap(navigation,setLatitude,setLongitude)}>
                 <Icon name="map-marked-alt" size={24} color="white" />
                 <Text>Pick on Map</Text>  
             </TouchableOpacity>

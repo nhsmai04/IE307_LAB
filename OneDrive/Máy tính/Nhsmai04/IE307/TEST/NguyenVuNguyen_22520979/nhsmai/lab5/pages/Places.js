@@ -21,14 +21,14 @@ export default function Places() {
     );
 
   return (
-    <ScrollView style={styles.container} >
+    <View style={styles.container} >
         <FlatList
         data={places}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
         contentContainerStyle={styles.listContainer}
         />
-    </ScrollView>
+    </View>
   )
 }
 
