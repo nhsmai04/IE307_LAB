@@ -15,15 +15,7 @@ export default function Placesstack() {
         <PlacesStack.Screen name="Places" component={Places} 
         options={({navigation}) => ({
           title: 'My Places',
-          headerRight: () => (
-            <Button
-              onPress={() => navigation.navigate('AddPlace')}
-              title="+"
-              color="black"
-              padding="10"
-              backgroundColor="orange"
-            />
-          ),   
+            
         })
       }
        

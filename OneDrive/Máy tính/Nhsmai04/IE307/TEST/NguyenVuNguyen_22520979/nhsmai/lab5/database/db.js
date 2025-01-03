@@ -41,7 +41,7 @@ export const createTable = async () => {
 export const fetchPlaces = async (callback) => {
    try {
     const places = await db.getAllAsync(`SELECT * FROM places`);
-    console.log("Danh sach dia diem",places);
+    //console.log("Danh sach dia diem",places);
     callback(places);
    } catch (error) {
     console.log("Loi khi lay du lieu dia diem",error);

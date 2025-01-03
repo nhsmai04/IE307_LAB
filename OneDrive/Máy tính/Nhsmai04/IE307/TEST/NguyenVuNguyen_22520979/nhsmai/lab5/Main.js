@@ -31,12 +31,15 @@ export default function Main() {
                         tabBarLabel: "Places",
                         headerShown: false,
                         tabBarIcon: ({ color, size }) => (
-                        <Icon name="location-dot" color={color} size={size} />
+                        <Icon name="paper-plane" color={color} size={size} />
                         ),    }}
             />
             <Tab.Screen name="Media" component={Mediastack} 
             options={{
                         tabBarLabel: "Media",
+                        
+                        headerShown: false,
+                        headerTitleAlign:'left',
                         tabBarIcon: ({ color, size }) => (
                         <Icon name="image" color={color} size={size} />
                         ),

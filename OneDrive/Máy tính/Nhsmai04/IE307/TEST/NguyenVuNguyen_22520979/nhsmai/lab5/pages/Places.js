@@ -1,12 +1,32 @@
-import { View, Text ,StyleSheet,ScrollView,FlatList, Image,TouchableOpacity} from 'react-native'
+import { View, Text ,StyleSheet,ScrollView,FlatList, Image,TouchableOpacity,ActivityIndicator} from 'react-native'
 import React,{useEffect,useState} from 'react'
 import { useFocusEffect } from "@react-navigation/native";
-import { fetchPlaces } from '../database/db';
+import { fetchPlaces,dropTable } from '../database/db';
+import Icon from "react-native-vector-icons/FontAwesome5";
 export default function Places({navigation}) {
   const [places, setPlaces] = useState([])
+  const [loading, setLoading] = useState(true);
+//  useEffect(() => {
+//   dropTable();
+// })
+ 
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => navigation.navigate("AddPlace")}
+        >
+          <Icon name="plus" size={24} color="#fff" />
+        </TouchableOpacity>
+      ),
+    });
+  }, []);
+  
   useFocusEffect(
     React.useCallback(() => {
       fetchPlaces(setPlaces);
+      setLoading(false);
     }, [])
   );
 
@@ -31,12 +51,25 @@ export default function Places({navigation}) {
 
   return (
     <View style={styles.container} >
-        <FlatList
+        {places.length > 0 ?(
+          <FlatList
         data={places}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
         contentContainerStyle={styles.listContainer}
         />
+        ): loading ? (
+          <View style={{ flex: 1, justifyContent: "center" }}>
+          <ActivityIndicator size="large" color="#cf3339" />
+        </View>
+        ):(
+          <View style={{ flex: 1, justifyContent: "center" }}>
+          <Text style={{ textAlign: "center" }}>
+            No places added yet! Start adding some.
+          </Text>
+        </View>
+        )}
+        
     </View>
   )
 }
@@ -45,6 +78,16 @@ const styles = StyleSheet.create({
 container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  addButton:{
+    backgroundColor: "orange",
+    borderRadius: 30,
+    width: 40,
+    height: 40,
+    marginRight: 10,
+    alignItems: "center",
+    justifyContent: "center",
+
   },
   listContainer: {
     padding: 10,

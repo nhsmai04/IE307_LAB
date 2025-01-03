@@ -4,7 +4,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { Camera } from 'expo-camera';
 import MapView, {UrlTile,Marker, Callout} from 'react-native-maps';
 import * as Location from 'expo-location';
-import axios from 'axios';
 import Icon from "react-native-vector-icons/FontAwesome5";
 import { insertPlace,createTable ,updateTable,checkTableColumns,dropTable } from '../database/db';
 import * as Notifications from 'expo-notifications';
@@ -49,19 +48,24 @@ export default function AddPlace({navigation}) {
     }
   
     const takePicture = async () => {
-        if (hasCameraPermission) {
-            const result = await ImagePicker.launchCameraAsync({
-              allowsEditing: true,
-              quality: 1,
-            });
-      
-            if (!result.canceled) {
-              setImage(result.assets[0].uri); // Lưu URI của ảnh đã chụp
-            }
-          } else {
-            alert('Camera permission is required!');
-          }
-    }
+      const { status } = await Camera.requestCameraPermissionsAsync();
+    
+      if (status === 'granted') {
+        // Quyền truy cập đã được cấp
+        const result = await ImagePicker.launchCameraAsync({
+          allowsEditing: true,
+          quality: 1,
+        });
+    
+        if (!result.canceled) {
+          setImage(result.assets[0].uri); // Lưu URI của ảnh đã chụp
+        }
+      } else {
+        // Thông báo nếu người dùng không cấp quyền
+        alert('Camera permission is required!');
+      }
+    };
+    
 
     const pickLocation = async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -93,24 +97,9 @@ export default function AddPlace({navigation}) {
     navigation.navigate('PickonMap', { setLatitude, setLongitude, setSelectedLocation,location,setLocation });
   };
 
-    // const getAddressFromCoordinates = async (latitude, longitude) => {
-    //     const apiKey = MY_API_KEY; // Replace with your HERE API Key
-    //     const url = `https://revgeocode.search.hereapi.com/v1/revgeocode?at=${latitude},${longitude}&apikey=${apiKey}`;
-      
-    //     try {
-    //       const response = await axios.get(url);
-    //       const address = response.data.items[0].address;
-          
-    //         return address.label;
-    //     } catch (error) {
-    //       console.error('Error fetching address:', error);
-    //     }
-    //   };
 
-
-
-    const handleSave = () => {
-        console.log('Saving place with:', { title, image, latitude, longitude, location });
+  const handleSave = () => {
+    console.log('Saving place with:', { title, image, latitude, longitude, location });
 
   // Kiểm tra các giá trị trước khi lưu
   if (!title || !image || latitude === null || longitude === null || !location) {
@@ -248,7 +237,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
     },
-        image: {
+   image: {
         width: '100%',
         height: '100%',
     },

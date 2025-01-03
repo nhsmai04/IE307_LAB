@@ -1,10 +1,27 @@
-import { View, Text } from 'react-native'
+import { View, Text,Button } from 'react-native'
 import React from 'react'
+import { createStackNavigator } from '@react-navigation/stack'
 
-export default function Mediastack() {
+import { useNavigation } from '@react-navigation/native';
+import Media from './pages/Media';
+
+import RecordVideoScreen from './pages/RecordVideoScreen';
+
+
+const MediaStack = createStackNavigator() 
+export default function Mediatack() {
   return (
-    <View>
-      <Text>Media</Text>
-    </View>
+    <MediaStack.Navigator initialRouteName='Media'>
+        <MediaStack.Screen name="Media" component={Media} 
+        options={({navigation}) => ({
+          title: 'My Gallery',
+          
+        })}
+        />
+        <MediaStack.Screen name="RecordVideo" component={RecordVideoScreen} 
+         
+        />
+        
+    </MediaStack.Navigator>
   )
 }
